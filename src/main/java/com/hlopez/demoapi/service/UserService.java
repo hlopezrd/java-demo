@@ -20,9 +20,5 @@ public class UserService {
   public List<User> getByStatus(String status) {
     return dao.findByStatus(status);
   }
-
-  public User save(User user) {
-    return dao.saveAndFlush(user);
-  }
-
+  
 }
