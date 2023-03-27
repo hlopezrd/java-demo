@@ -8,10 +8,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+
+import jakarta.servlet.ServletException;
+
 import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 
@@ -60,6 +66,37 @@ public class UsersApiTest {
               .andExpect(jsonPath("$", hasSize(2)))
               .andExpect(jsonPath("$.[0].id").value(33))
               .andExpect(jsonPath("$.[1].id").value(44));
+  }
+
+  @Test
+  void should_return_empty_list_of_users() throws Exception {
+    this.mockMvc.perform(get("/api/v1/users?status=NONE"))
+              .andDo(print())
+              .andExpect(status().isOk())
+              .andExpect(content().contentType(APPLICATION_JSON))
+              .andExpect(jsonPath("$").isArray())
+              .andExpect(jsonPath("$", hasSize(0)));
+  }
+
+  @Test
+  void should_return_user_by_id() throws Exception {
+    this.mockMvc.perform(get("/api/v1/users/33"))
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(APPLICATION_JSON))
+            .andExpect(jsonPath("$.status").value("disabled"));
+  }
+
+  @Test
+  void should_return_error_when_user_not_found() throws Exception {
+    try {
+        this.mockMvc.perform(get("/api/v1/users/0"))
+                .andDo(print())
+                .andExpect(status().isInternalServerError());
+
+    } catch(Exception e) {
+     assertThat(e).isInstanceOf(ServletException.class);
+    }
   }
 
 }
